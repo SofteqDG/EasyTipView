@@ -321,12 +321,7 @@ open class EasyTipView: UIView {
         
         switch content {
         case .text(let text):
-            #if swift(>=4.2)
             var attributes = [NSAttributedString.Key.font : self.preferences.drawing.font]
-            #else
-            var attributes = [NSAttributedStringKey.font : self.preferences.drawing.font]
-            #endif
-            
             var textSize = text.boundingRect(with: CGSize(width: self.preferences.positioning.maxWidth, height: CGFloat.greatestFiniteMagnitude), options: NSStringDrawingOptions.usesLineFragmentOrigin, attributes: attributes, context: nil).size
             
             textSize.width = ceil(textSize.width)
@@ -399,12 +394,7 @@ open class EasyTipView: UIView {
         
         self.backgroundColor = UIColor.clear
         
-        #if swift(>=4.2)
         let notificationName = UIDevice.orientationDidChangeNotification
-        #else
-        let notificationName = NSNotification.Name.UIDeviceOrientationDidChange
-        #endif
-        
         NotificationCenter.default.addObserver(self, selector: #selector(handleRotation), name: notificationName, object: nil)
     }
     
@@ -651,15 +641,13 @@ open class EasyTipView: UIView {
         paragraphStyle.alignment = preferences.drawing.textAlignment
         paragraphStyle.lineBreakMode = NSLineBreakMode.byWordWrapping
         
-        
+        let attributes = [
+            NSAttributedString.Key.font : preferences.drawing.font,
+            NSAttributedString.Key.foregroundColor : preferences.drawing.foregroundColor,
+            NSAttributedString.Key.paragraphStyle : paragraphStyle
+        ]
+
         let textRect = getContentRect(from: bubbleFrame)
-        
-        #if swift(>=4.2)
-        let attributes = [NSAttributedString.Key.font : preferences.drawing.font, NSAttributedString.Key.foregroundColor : preferences.drawing.foregroundColor, NSAttributedString.Key.paragraphStyle : paragraphStyle]
-        #else
-        let attributes = [NSAttributedStringKey.font : preferences.drawing.font, NSAttributedStringKey.foregroundColor : preferences.drawing.foregroundColor, NSAttributedStringKey.paragraphStyle : paragraphStyle]
-        #endif
-        
         text.draw(in: textRect, withAttributes: attributes)
     }
 
