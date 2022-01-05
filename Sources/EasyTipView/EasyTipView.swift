@@ -160,15 +160,23 @@ public extension EasyTipView {
         presentingView = view
         arrange(withinSuperview: superview)
         
+        overlayView.transform = CGAffineTransform.identity
+        overlayView.alpha = 0.0
+        
+        let tapOverlay = UITapGestureRecognizer(target: self, action: #selector(handleBgTap))
+        overlayView.addGestureRecognizer(tapOverlay)
+        superview.addSubview(overlayView)
+        
         transform = initialTransform
         alpha = initialAlpha
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
         addGestureRecognizer(tap)
-        
         superview.addSubview(self)
         
         let animations : () -> () = {
+            self.overlayView.transform = CGAffineTransform.identity
+            self.overlayView.alpha = 1
             self.transform = finalTransform
             self.alpha = 1
         }
@@ -190,12 +198,16 @@ public extension EasyTipView {
         let damping = preferences.animating.springDamping
         let velocity = preferences.animating.springVelocity
         
-        UIView.animate(withDuration: preferences.animating.dismissDuration, delay: 0, usingSpringWithDamping: damping, initialSpringVelocity: velocity, options: [.curveEaseInOut], animations: { 
+        UIView.animate(withDuration: preferences.animating.dismissDuration, delay: 0, usingSpringWithDamping: damping, initialSpringVelocity: velocity, options: [.curveEaseInOut], animations: {
+            self.overlayView.transform = CGAffineTransform.identity
+            self.overlayView.alpha = 0.0
             self.transform = self.preferences.animating.dismissTransform
             self.alpha = self.preferences.animating.dismissFinalAlpha
         }) { (finished) -> Void in
             completion?()
             self.delegate?.easyTipViewDidDismiss(self)
+            self.overlayView.removeFromSuperview()
+            self.overlayView.transform = CGAffineTransform.identity
             self.removeFromSuperview()
             self.transform = CGAffineTransform.identity
         }
@@ -255,6 +267,8 @@ open class EasyTipView: UIView {
             public var showDuration         = 0.7
             public var dismissDuration      = 0.7
             public var dismissOnTap         = true
+            public var dismissOnBgTap       = false
+            public var interceptBgTaps      = false
         }
         
         public var drawing      = Drawing()
@@ -361,6 +375,12 @@ open class EasyTipView: UIView {
                 height: self.contentSize.height + self.preferences.positioning.contentInsets.top + self.preferences.positioning.contentInsets.bottom + self.preferences.positioning.bubbleInsets.top + self.preferences.positioning.bubbleInsets.bottom + self.preferences.drawing.arrowHeight)
         
         return tipViewSize
+    }()
+    
+    fileprivate lazy var overlayView: EasyTipViewOverlayView = {
+        let view = EasyTipViewOverlayView()
+        view.isUserInteractionEnabled = self.preferences.animating.interceptBgTaps
+        return view
     }()
     
     // MARK: - Static variables -
@@ -473,6 +493,7 @@ open class EasyTipView: UIView {
     }
     
     fileprivate func arrange(withinSuperview superview: UIView) {
+        self.overlayView.frame = superview.bounds
         
         var position = preferences.drawing.arrowPosition
         
@@ -532,6 +553,11 @@ open class EasyTipView: UIView {
     @objc func handleTap() {
         self.delegate?.easyTipViewDidTap(self)
         guard preferences.animating.dismissOnTap else { return }
+        dismiss()
+    }
+    
+    @objc func handleBgTap() {
+        guard preferences.animating.dismissOnBgTap else { return }
         dismiss()
     }
     
