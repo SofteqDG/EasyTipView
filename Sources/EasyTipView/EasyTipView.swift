@@ -146,7 +146,7 @@ public extension EasyTipView {
         
         let superview = superview!
         #else
-        precondition(superview == nil || view.hasSuperview(superview!), "The supplied superview <\(superview!)> is not a direct nor an indirect superview of the supplied reference view <\(view)>. The superview passed to this method should be a direct or an indirect superview of the reference view. To display the tooltip within the main window, ignore the superview parameter.")
+        precondition(superview == nil || (view !== superview! && view.isDescendant(of: superview!)), "The supplied superview <\(superview!)> is not a direct nor an indirect superview of the supplied reference view <\(view)>. The superview passed to this method should be a direct or an indirect superview of the reference view. To display the tooltip within the main window, ignore the superview parameter.")
         
         let superview = superview ?? UIApplication.shared.windows.first!
         #endif
@@ -466,20 +466,20 @@ open class EasyTipView: UIView {
         switch position {
         case .top, .any:
             let anchor = min(max(preferences.positioning.anchorPoints.top, 0.0), 1.0)
-            frame.x = refViewFrame.midX - tipViewSize.width * anchor
-            frame.y = refViewFrame.y + refViewFrame.height
+            frame.origin.x = refViewFrame.midX - tipViewSize.width * anchor
+            frame.origin.y = refViewFrame.minY + refViewFrame.height
         case .bottom:
             let anchor = min(max(preferences.positioning.anchorPoints.bottom, 0.0), 1.0)
-            frame.x = refViewFrame.midX - tipViewSize.width * anchor
-            frame.y = refViewFrame.y - tipViewSize.height
+            frame.origin.x = refViewFrame.midX - tipViewSize.width * anchor
+            frame.origin.y = refViewFrame.minY - tipViewSize.height
         case .right:
             let anchor = min(max(preferences.positioning.anchorPoints.right, 0.0), 1.0)
-            frame.x = refViewFrame.x - tipViewSize.width
-            frame.y = refViewFrame.midY - tipViewSize.height * anchor
+            frame.origin.x = refViewFrame.minX - tipViewSize.width
+            frame.origin.y = refViewFrame.midY - tipViewSize.height * anchor
         case .left:
             let anchor = min(max(preferences.positioning.anchorPoints.left, 0.0), 1.0)
-            frame.x = refViewFrame.x + refViewFrame.width
-            frame.y = refViewFrame.midY - tipViewSize.height * anchor
+            frame.origin.x = refViewFrame.minX + refViewFrame.width
+            frame.origin.y = refViewFrame.midY - tipViewSize.height * anchor
         }
         
         adjustFrame(&frame, forSuperviewFrame: superviewFrame)
@@ -489,17 +489,17 @@ open class EasyTipView: UIView {
     fileprivate func adjustFrame(_ frame: inout CGRect, forSuperviewFrame superviewFrame: CGRect) {
         
         // adjust horizontally
-        if frame.x < 0 {
-            frame.x =  0
+        if frame.origin.x < 0 {
+            frame.origin.x =  0
         } else if frame.maxX > superviewFrame.width {
-            frame.x = superviewFrame.width - frame.width
+            frame.origin.x = superviewFrame.width - frame.width
         }
         
         //adjust vertically
-        if frame.y < 0 {
-            frame.y = 0
+        if frame.origin.y < 0 {
+            frame.origin.y = 0
         } else if frame.maxY > superviewFrame.maxY {
-            frame.y = superviewFrame.height - frame.height
+            frame.origin.y = superviewFrame.height - frame.height
         }
     }
     
@@ -624,35 +624,31 @@ open class EasyTipView: UIView {
     }
     
     fileprivate func drawBubbleBottomShape(_ frame: CGRect, cornerRadius: CGFloat, path: CGMutablePath) {
-        
-        path.addArc(tangent1End: CGPoint(x: frame.x, y: frame.y + frame.height), tangent2End: CGPoint(x: frame.x, y: frame.y), radius: cornerRadius)
-        path.addArc(tangent1End: CGPoint(x: frame.x, y: frame.y), tangent2End: CGPoint(x: frame.x + frame.width, y: frame.y), radius: cornerRadius)
-        path.addArc(tangent1End: CGPoint(x: frame.x + frame.width, y: frame.y), tangent2End: CGPoint(x: frame.x + frame.width, y: frame.y + frame.height), radius: cornerRadius)
-        path.addArc(tangent1End: CGPoint(x: frame.x + frame.width, y: frame.y + frame.height), tangent2End: CGPoint(x: frame.x, y: frame.y + frame.height), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.minX, y: frame.maxY), tangent2End: CGPoint(x: frame.minX, y: frame.minY), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.minX, y: frame.minY), tangent2End: CGPoint(x: frame.maxX, y: frame.minY), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.maxX, y: frame.minY), tangent2End: CGPoint(x: frame.maxX, y: frame.maxY), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.maxX, y: frame.maxY), tangent2End: CGPoint(x: frame.minX, y: frame.maxY), radius: cornerRadius)
     }
     
     fileprivate func drawBubbleTopShape(_ frame: CGRect, cornerRadius: CGFloat, path: CGMutablePath) {
-        
-        path.addArc(tangent1End: CGPoint(x: frame.x, y: frame.y), tangent2End: CGPoint(x: frame.x, y: frame.y + frame.height), radius: cornerRadius)
-        path.addArc(tangent1End: CGPoint(x: frame.x, y:  frame.y + frame.height), tangent2End: CGPoint(x: frame.x + frame.width, y: frame.y + frame.height), radius: cornerRadius)
-        path.addArc(tangent1End: CGPoint(x: frame.x + frame.width, y: frame.y + frame.height), tangent2End: CGPoint(x: frame.x + frame.width, y: frame.y), radius: cornerRadius)
-        path.addArc(tangent1End: CGPoint(x: frame.x + frame.width, y: frame.y), tangent2End: CGPoint(x: frame.x, y: frame.y), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.minX, y: frame.minY), tangent2End: CGPoint(x: frame.minX, y: frame.maxY), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.minX, y: frame.maxY), tangent2End: CGPoint(x: frame.maxX, y: frame.maxY), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.maxX, y: frame.maxY), tangent2End: CGPoint(x: frame.maxX, y: frame.minY), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.maxX, y: frame.minY), tangent2End: CGPoint(x: frame.minX, y: frame.minY), radius: cornerRadius)
     }
     
     fileprivate func drawBubbleRightShape(_ frame: CGRect, cornerRadius: CGFloat, path: CGMutablePath) {
-        
-        path.addArc(tangent1End: CGPoint(x: frame.x + frame.width, y: frame.y), tangent2End: CGPoint(x: frame.x, y: frame.y), radius: cornerRadius)
-        path.addArc(tangent1End: CGPoint(x: frame.x, y: frame.y), tangent2End: CGPoint(x: frame.x, y: frame.y + frame.height), radius: cornerRadius)
-        path.addArc(tangent1End: CGPoint(x: frame.x, y: frame.y + frame.height), tangent2End: CGPoint(x: frame.x + frame.width, y: frame.y + frame.height), radius: cornerRadius)
-        path.addArc(tangent1End: CGPoint(x: frame.x + frame.width, y: frame.y + frame.height), tangent2End: CGPoint(x: frame.x + frame.width, y: frame.y), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.maxX, y: frame.minY), tangent2End: CGPoint(x: frame.minX, y: frame.minY), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.minX, y: frame.minY), tangent2End: CGPoint(x: frame.minX, y: frame.maxY), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.minX, y: frame.maxY), tangent2End: CGPoint(x: frame.maxX, y: frame.maxY), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.maxX, y: frame.maxY), tangent2End: CGPoint(x: frame.maxX, y: frame.minY), radius: cornerRadius)
     }
     
     fileprivate func drawBubbleLeftShape(_ frame: CGRect, cornerRadius: CGFloat, path: CGMutablePath) {
-        
-        path.addArc(tangent1End: CGPoint(x: frame.x, y: frame.y), tangent2End: CGPoint(x: frame.x + frame.width, y: frame.y), radius: cornerRadius)
-        path.addArc(tangent1End: CGPoint(x: frame.x + frame.width, y: frame.y), tangent2End: CGPoint(x: frame.x + frame.width, y: frame.y + frame.height), radius: cornerRadius)
-        path.addArc(tangent1End: CGPoint(x: frame.x + frame.width, y: frame.y + frame.height), tangent2End: CGPoint(x: frame.x, y: frame.y + frame.height), radius: cornerRadius)
-        path.addArc(tangent1End: CGPoint(x: frame.x, y: frame.y + frame.height), tangent2End: CGPoint(x: frame.x, y: frame.y), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.minX, y: frame.minY), tangent2End: CGPoint(x: frame.maxX, y: frame.minY), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.maxX, y: frame.minY), tangent2End: CGPoint(x: frame.maxX, y: frame.maxY), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.maxX, y: frame.maxY), tangent2End: CGPoint(x: frame.minX, y: frame.maxY), radius: cornerRadius)
+        path.addArc(tangent1End: CGPoint(x: frame.minX, y: frame.maxY), tangent2End: CGPoint(x: frame.minX, y: frame.minY), radius: cornerRadius)
     }
     
     fileprivate func paintBubble(_ context: CGContext) {
