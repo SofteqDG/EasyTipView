@@ -141,15 +141,22 @@ public extension EasyTipView {
      */
     func show(animated: Bool = true, forView view: UIView, withinSuperview superview: UIView? = nil) {
         
+        let presentingSuperview: UIView
+        do {
         #if TARGET_APP_EXTENSIONS
-        precondition(superview != nil, "The supplied superview parameter cannot be nil for app extensions.")
-        
-        let superview = superview!
+            guard let targetSuperview = superview else {
+                debugPrint("The supplied superview parameter cannot be nil for app extensions.")
+                return
+            }
+            presentingSuperview = targetSuperview
         #else
-        precondition(superview == nil || (view !== superview! && view.isDescendant(of: superview!)), "The supplied superview <\(superview!)> is not a direct nor an indirect superview of the supplied reference view <\(view)>. The superview passed to this method should be a direct or an indirect superview of the reference view. To display the tooltip within the main window, ignore the superview parameter.")
-        
-        let superview = superview ?? UIApplication.shared.windows.first!
+            if let targetSuperview = superview, (targetSuperview === view || !view.isDescendant(of: targetSuperview)) {
+                debugPrint("The supplied superview <\(targetSuperview)> is not a direct nor an indirect superview of the supplied reference view <\(view)>. The superview passed to this method should be a direct or an indirect superview of the reference view. To display the tooltip within the main window, ignore the superview parameter.")
+                return
+            }
+            presentingSuperview = superview ?? view.window ?? UIApplication.shared.windows.first!
         #endif
+        }
         
         let initialTransform = preferences.animating.showInitialTransform
         let finalTransform = preferences.animating.showFinalTransform
@@ -158,21 +165,21 @@ public extension EasyTipView {
         let velocity = preferences.animating.springVelocity
         
         presentingView = view
-        arrange(withinSuperview: superview)
+        arrange(withinSuperview: presentingSuperview)
         
         overlayView.transform = CGAffineTransform.identity
         overlayView.alpha = 0.0
         
         let tapOverlay = UITapGestureRecognizer(target: self, action: #selector(handleBgTap))
         overlayView.addGestureRecognizer(tapOverlay)
-        superview.addSubview(overlayView)
+        presentingSuperview.addSubview(overlayView)
         
         transform = initialTransform
         alpha = initialAlpha
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
         addGestureRecognizer(tap)
-        superview.addSubview(self)
+        presentingSuperview.addSubview(self)
         
         let animations : () -> () = {
             self.overlayView.transform = CGAffineTransform.identity
