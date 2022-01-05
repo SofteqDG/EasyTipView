@@ -238,6 +238,7 @@ open class EasyTipView: UIView {
         }
         
         public struct Positioning {
+            public var anchorPoints         = UIEdgeInsets(top: 0.5, left: 0.5, bottom: 0.5, right: 0.5)
             public var bubbleInsets         = UIEdgeInsets(top: 1.0, left: 1.0, bottom: 1.0, right: 1.0)
             public var contentInsets        = UIEdgeInsets(top: 10.0, left: 10.0, bottom: 10.0, right: 10.0)
             public var maxWidth             = CGFloat(200)
@@ -425,25 +426,27 @@ open class EasyTipView: UIView {
     // MARK: - Private methods -
     
     fileprivate func computeFrame(arrowPosition position: ArrowPosition, refViewFrame: CGRect, superviewFrame: CGRect) -> CGRect {
-        var xOrigin: CGFloat = 0
-        var yOrigin: CGFloat = 0
+        var frame = CGRect(origin: .zero, size: tipViewSize)
         
         switch position {
         case .top, .any:
-            xOrigin = refViewFrame.center.x - tipViewSize.width / 2
-            yOrigin = refViewFrame.y + refViewFrame.height
+            let anchor = min(max(preferences.positioning.anchorPoints.top, 0.0), 1.0)
+            frame.x = refViewFrame.midX - tipViewSize.width * anchor
+            frame.y = refViewFrame.y + refViewFrame.height
         case .bottom:
-            xOrigin = refViewFrame.center.x - tipViewSize.width / 2
-            yOrigin = refViewFrame.y - tipViewSize.height
+            let anchor = min(max(preferences.positioning.anchorPoints.bottom, 0.0), 1.0)
+            frame.x = refViewFrame.midX - tipViewSize.width * anchor
+            frame.y = refViewFrame.y - tipViewSize.height
         case .right:
-            xOrigin = refViewFrame.x - tipViewSize.width
-            yOrigin = refViewFrame.center.y - tipViewSize.height / 2
+            let anchor = min(max(preferences.positioning.anchorPoints.right, 0.0), 1.0)
+            frame.x = refViewFrame.x - tipViewSize.width
+            frame.y = refViewFrame.midY - tipViewSize.height * anchor
         case .left:
-            xOrigin = refViewFrame.x + refViewFrame.width
-            yOrigin = refViewFrame.center.y - tipViewSize.height / 2
+            let anchor = min(max(preferences.positioning.anchorPoints.left, 0.0), 1.0)
+            frame.x = refViewFrame.x + refViewFrame.width
+            frame.y = refViewFrame.midY - tipViewSize.height * anchor
         }
         
-        var frame = CGRect(x: xOrigin, y: yOrigin, width: tipViewSize.width, height: tipViewSize.height)
         adjustFrame(&frame, forSuperviewFrame: superviewFrame)
         return frame
     }
@@ -503,22 +506,10 @@ open class EasyTipView: UIView {
         
         switch position {
         case .bottom, .top, .any:
-            var arrowTipXOrigin: CGFloat
-            if frame.width < refViewFrame.width {
-                arrowTipXOrigin = tipViewSize.width / 2
-            } else {
-                arrowTipXOrigin = abs(frame.x - refViewFrame.x) + refViewFrame.width / 2
-            }
-            
+            let arrowTipXOrigin: CGFloat = refViewFrame.midX - frame.origin.x
             arrowTip = CGPoint(x: arrowTipXOrigin, y: position == .bottom ? tipViewSize.height - preferences.positioning.bubbleInsets.bottom :  preferences.positioning.bubbleInsets.top)
         case .right, .left:
-            var arrowTipYOrigin: CGFloat
-            if frame.height < refViewFrame.height {
-                arrowTipYOrigin = tipViewSize.height / 2
-            } else {
-                arrowTipYOrigin = abs(frame.y - refViewFrame.y) + refViewFrame.height / 2
-            }
-            
+            let arrowTipYOrigin: CGFloat = refViewFrame.midY - frame.origin.y
             arrowTip = CGPoint(x: preferences.drawing.arrowPosition == .left ? preferences.positioning.bubbleInsets.left : tipViewSize.width - preferences.positioning.bubbleInsets.right, y: arrowTipYOrigin)
         }
         

@@ -62,9 +62,5 @@ extension CGRect {
             self.origin.y = newValue
         }
     }
-    
-    var center: CGPoint {
-        return CGPoint(x: self.x + self.width / 2, y: self.y + self.height / 2)
-    }
 }
 #endif
