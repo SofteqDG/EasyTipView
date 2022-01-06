@@ -288,6 +288,9 @@ open class EasyTipView: UIView {
             public var dismissFinalAlpha    = CGFloat(0)
             public var showDuration         = 0.7
             public var dismissDuration      = 0.7
+        }
+        
+        public struct Interaction {
             public var dismissOnTap         = true
             public var dismissOnBgTap       = false
             public var interceptBgTaps      = false
@@ -296,6 +299,8 @@ open class EasyTipView: UIView {
         public var drawing      = Drawing()
         public var positioning  = Positioning()
         public var animating    = Animating()
+        public var interaction  = Interaction()
+        
         public var hasBorder : Bool {
             return drawing.borderWidth > 0 && drawing.borderColor != UIColor.clear
         }
@@ -401,7 +406,7 @@ open class EasyTipView: UIView {
     
     fileprivate lazy var overlayView: EasyTipViewOverlayView = {
         let view = EasyTipViewOverlayView()
-        view.isUserInteractionEnabled = self.preferences.animating.interceptBgTaps
+        view.isUserInteractionEnabled = self.preferences.interaction.interceptBgTaps
         return view
     }()
     
@@ -574,12 +579,12 @@ open class EasyTipView: UIView {
     
     @objc func handleTap() {
         self.delegate?.easyTipViewDidTap(self)
-        guard preferences.animating.dismissOnTap else { return }
+        guard preferences.interaction.dismissOnTap else { return }
         dismiss()
     }
     
     @objc func handleBgTap() {
-        guard preferences.animating.dismissOnBgTap else { return }
+        guard preferences.interaction.dismissOnBgTap else { return }
         dismiss()
     }
     

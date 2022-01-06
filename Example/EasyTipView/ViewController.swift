@@ -119,13 +119,13 @@ class ViewController: UIViewController, EasyTipViewDelegate {
             preferences.drawing.foregroundColor = UIColor.white
             preferences.drawing.font = UIFont(name: "HelveticaNeue-Light", size: 14)!
             preferences.drawing.textAlignment = NSTextAlignment.justified
+            preferences.drawing.arrowPosition = .top
             
             preferences.animating.dismissTransform = CGAffineTransform(translationX: 0, y: -15)
             preferences.animating.showInitialTransform = CGAffineTransform(translationX: 0, y: 15)
             preferences.animating.showInitialAlpha = 0
             preferences.animating.showDuration = 1
             preferences.animating.dismissDuration = 1
-            preferences.drawing.arrowPosition = .top
             
             let text = "Tip view inside the navigation controller's view. Tap to dismiss!"
             EasyTipView.show(forView: self.buttonB,
@@ -137,13 +137,13 @@ class ViewController: UIViewController, EasyTipViewDelegate {
             
             var preferences = EasyTipView.globalPreferences
             preferences.drawing.backgroundColor = buttonC.backgroundColor!
+            preferences.drawing.arrowPosition = .top
             
             preferences.animating.dismissTransform = CGAffineTransform(translationX: 0, y: -15)
             preferences.animating.showInitialTransform = CGAffineTransform(translationX: 0, y: -15)
             preferences.animating.showInitialAlpha = 0
             preferences.animating.showDuration = 1.5
             preferences.animating.dismissDuration = 1.5
-            preferences.drawing.arrowPosition = .top
             
             let text = "This tip view cannot be presented with the arrow on the top position, so position bottom has been chosen instead. Tap to dismiss."
             EasyTipView.show(forView: buttonC,
@@ -157,7 +157,6 @@ class ViewController: UIViewController, EasyTipViewDelegate {
             preferences.drawing.backgroundColor = buttonE.backgroundColor!
             preferences.drawing.foregroundColor = UIColor.white
             preferences.drawing.textAlignment = NSTextAlignment.center
-            
             preferences.drawing.arrowPosition = .right
             
             preferences.animating.dismissTransform = CGAffineTransform(translationX: 0, y: 100)
@@ -177,7 +176,6 @@ class ViewController: UIViewController, EasyTipViewDelegate {
             preferences.drawing.backgroundColor = buttonF.backgroundColor!
             preferences.drawing.foregroundColor = UIColor.white
             preferences.drawing.textAlignment = NSTextAlignment.center
-            
             preferences.drawing.arrowPosition = .left
             
             preferences.animating.dismissTransform = CGAffineTransform(translationX: -30, y: -100)
@@ -185,9 +183,10 @@ class ViewController: UIViewController, EasyTipViewDelegate {
             preferences.animating.showInitialAlpha = 0
             preferences.animating.showDuration = 1
             preferences.animating.dismissDuration = 1
-            preferences.animating.dismissOnTap = false
             
             preferences.positioning.maxWidth = 150
+            
+            preferences.interaction.dismissOnTap = false
             
             let view = EasyTipView(text: "Tip view positioned with the arrow on the left. Tap won't dismiss.", preferences: preferences)
             view.show(forView: buttonF, withinSuperview: self.navigationController?.view!)
@@ -196,13 +195,13 @@ class ViewController: UIViewController, EasyTipViewDelegate {
             
             var preferences = EasyTipView.globalPreferences
             preferences.drawing.backgroundColor = buttonG.backgroundColor!
-
+            preferences.drawing.arrowPosition = .bottom
+            
             preferences.animating.dismissTransform = CGAffineTransform(translationX: 0, y: -15)
             preferences.animating.showInitialTransform = CGAffineTransform(translationX: 0, y: 15)
             preferences.animating.showInitialAlpha = 0
             preferences.animating.showDuration = 1
             preferences.animating.dismissDuration = 1
-            preferences.drawing.arrowPosition = .bottom
 
             preferences.positioning.contentInsets = UIEdgeInsetsMake(5, 5, 5, 5)
             
@@ -220,13 +219,13 @@ class ViewController: UIViewController, EasyTipViewDelegate {
             preferences.drawing.textAlignment = .center
             preferences.drawing.backgroundColor = buttonD.backgroundColor!
 
-            preferences.positioning.maxWidth = 230
-
             preferences.animating.dismissTransform = CGAffineTransform(translationX: 100, y: 0)
             preferences.animating.showInitialTransform = CGAffineTransform(translationX: 100, y: 0)
             preferences.animating.showInitialAlpha = 0
             preferences.animating.showDuration = 1
             preferences.animating.dismissDuration = 1
+            
+            preferences.positioning.maxWidth = 230
 
             let firstAttributes: [NSAttributedString.Key: Any] = [.backgroundColor: UIColor(hue:0.07, saturation:0.82, brightness:0.89, alpha:1.00), .font: UIFont.systemFont(ofSize: 14)]
             let secondAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.white, .backgroundColor: UIColor(hue:0.79, saturation:0.67, brightness:0.63, alpha:1.00), .font: UIFont.systemFont(ofSize: 14)]
