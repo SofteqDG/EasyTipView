@@ -193,24 +193,39 @@ public extension EasyTipView {
      
      - parameter completion: Completion block to be executed after the EasyTipView is dismissed.
      */
-    func dismiss(withCompletion completion: (() -> ())? = nil){
+    func dismiss(animated: Bool = true, withCompletion completion: (() -> Void)? = nil) {
         
         let damping = preferences.animating.springDamping
         let velocity = preferences.animating.springVelocity
         
-        UIView.animate(withDuration: preferences.animating.dismissDuration, delay: 0, usingSpringWithDamping: damping, initialSpringVelocity: velocity, options: [.curveEaseInOut], animations: {
+        let animationClosure: () -> Void = { () in
             self.overlayView.transform = CGAffineTransform.identity
             self.overlayView.alpha = 0.0
             self.transform = self.preferences.animating.dismissTransform
             self.alpha = self.preferences.animating.dismissFinalAlpha
-        }) { (finished) -> Void in
-            completion?()
+        }
+        
+        let completionClosure: (Bool) -> Void = { (_) in
             self.delegate?.easyTipViewDidDismiss(self)
             self.overlayView.removeFromSuperview()
             self.overlayView.transform = CGAffineTransform.identity
             self.removeFromSuperview()
             self.transform = CGAffineTransform.identity
         }
+        
+        if (!animated) {
+            animationClosure()
+            completionClosure(true)
+            return
+        }
+        
+        UIView.animate(withDuration: preferences.animating.dismissDuration,
+                       delay: 0,
+                       usingSpringWithDamping: damping,
+                       initialSpringVelocity: velocity,
+                       options: [.beginFromCurrentState, .curveEaseInOut],
+                       animations: animationClosure,
+                       completion: completionClosure)
     }
 }
 
