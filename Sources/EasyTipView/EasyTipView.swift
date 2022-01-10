@@ -25,8 +25,10 @@
 import UIKit
 
 public protocol EasyTipViewDelegate : AnyObject {
-    func easyTipViewDidTap(_ tipView: EasyTipView)
-    func easyTipViewDidDismiss(_ tipView : EasyTipView)
+    func easyTipViewDidTap(_ tipView: EasyTipView) -> Bool
+    func easyTipViewDidTapBg(_ tipView: EasyTipView) -> Bool
+    func easyTipViewDidDismiss(_ tipView: EasyTipView)
+    func easyTipViewWillDismiss(_ tipView: EasyTipView)
 }
 
 
@@ -206,6 +208,7 @@ public extension EasyTipView {
         let velocity = preferences.animating.springVelocity
         
         let animationClosure: () -> Void = { () in
+            self.invokeWillDismiss()
             self.overlayView.transform = CGAffineTransform.identity
             self.overlayView.alpha = 0.0
             self.transform = self.preferences.animating.dismissTransform
@@ -213,7 +216,7 @@ public extension EasyTipView {
         }
         
         let completionClosure: (Bool) -> Void = { (_) in
-            self.delegate?.easyTipViewDidDismiss(self)
+            self.invokeDidDismiss()
             self.overlayView.removeFromSuperview()
             self.overlayView.transform = CGAffineTransform.identity
             self.removeFromSuperview()
@@ -236,11 +239,54 @@ public extension EasyTipView {
     }
 }
 
+fileprivate extension EasyTipView {
+    
+    func invokeDidTap() -> Bool? {
+        if callbacks.didTap != nil {
+            return callbacks.didTap?(self)
+        }
+        return delegate?.easyTipViewDidTap(self)
+    }
+    
+    func invokeDidTapBg() -> Bool? {
+        if callbacks.didTapBg != nil {
+            return callbacks.didTapBg?(self)
+        }
+        return delegate?.easyTipViewDidTapBg(self)
+    }
+    
+    func invokeDidDismiss() {
+        if callbacks.didDismiss != nil {
+            callbacks.didDismiss?(self)
+            return
+        }
+        delegate?.easyTipViewDidDismiss(self)
+    }
+    
+    func invokeWillDismiss() {
+        if callbacks.willDismiss != nil {
+            callbacks.willDismiss?(self)
+            return
+        }
+        delegate?.easyTipViewWillDismiss(self)
+    }
+}
+
 // MARK: - EasyTipView class implementation -
 
 open class EasyTipView: UIView {
     
-    // MARK:- Nested types -
+    public class Callbacks {
+        public typealias DidTapClosure = (EasyTipView) -> Bool
+        public typealias DidTapBgClosure = (EasyTipView) -> Bool
+        public typealias DidDismissClosure = (EasyTipView) -> Void
+        public typealias WillDismissClosure = (EasyTipView) -> Void
+        
+        public var didTap: DidTapClosure?
+        public var didTapBg: DidTapBgClosure?
+        public var didDismiss: DidDismissClosure?
+        public var willDismiss: WillDismissClosure?
+    }
     
     public enum ArrowPosition {
         case any
@@ -349,8 +395,10 @@ open class EasyTipView: UIView {
         return "<< \(type) with \(content) >>"
     }
     
+    public let callbacks = Callbacks()
+    public weak var delegate: EasyTipViewDelegate?
+    
     fileprivate weak var presentingView: UIView?
-    fileprivate weak var delegate: EasyTipViewDelegate?
     fileprivate var arrowTip = CGPoint.zero
     fileprivate(set) open var preferences: Preferences
     private let content: Content
@@ -578,13 +626,14 @@ open class EasyTipView: UIView {
     // MARK:- Callbacks -
     
     @objc func handleTap() {
-        self.delegate?.easyTipViewDidTap(self)
-        guard preferences.interaction.dismissOnTap else { return }
+        let shouldDismiss = invokeDidTap() ?? preferences.interaction.dismissOnTap
+        guard shouldDismiss else { return }
         dismiss()
     }
     
     @objc func handleBgTap() {
-        guard preferences.interaction.dismissOnBgTap else { return }
+        let shouldDismiss = invokeDidTapBg() ??  preferences.interaction.dismissOnBgTap
+        guard shouldDismiss else { return }
         dismiss()
     }
     

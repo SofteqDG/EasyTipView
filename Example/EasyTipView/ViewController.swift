@@ -60,12 +60,22 @@ class ViewController: UIViewController, EasyTipViewDelegate {
         self.toolbarItemAction()
     }
     
-    func easyTipViewDidTap(_ tipView: EasyTipView) {
+    func easyTipViewDidTap(_ tipView: EasyTipView) -> Bool {
         print("\(tipView) did tap!")
+        return true
+    }
+    
+    func easyTipViewDidTapBg(_ tipView: EasyTipView) -> Bool {
+        print("\(tipView) did tap bg!")
+        return true
     }
     
     func easyTipViewDidDismiss(_ tipView: EasyTipView) {
         print("\(tipView) did dismiss!")
+    }
+    
+    func easyTipViewWillDismiss(_ tipView: EasyTipView) {
+        print("\(tipView) will dismiss!")
     }
     
     @IBAction func barButtonAction(sender: UIBarButtonItem) {
