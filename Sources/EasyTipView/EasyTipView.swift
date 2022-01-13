@@ -306,6 +306,7 @@ open class EasyTipView: UIView {
             public var arrowWidth          = CGFloat(10)
             public var foregroundColor     = UIColor.white
             public var backgroundColor     = UIColor.red
+            public var overlayColor        = UIColor.clear
             public var arrowPosition       = ArrowPosition.any
             public var textAlignment       = NSTextAlignment.center
             public var borderWidth         = CGFloat(0)
@@ -489,6 +490,7 @@ open class EasyTipView: UIView {
         super.init(frame: CGRect.zero)
         
         self.backgroundColor = UIColor.clear
+        self.overlayView.backgroundColor = preferences.drawing.overlayColor
         
         let notificationName = UIDevice.orientationDidChangeNotification
         NotificationCenter.default.addObserver(self, selector: #selector(handleRotation), name: notificationName, object: nil)
